@@ -1,0 +1,46 @@
+{
+    "name": "omnilab/string",
+    "type": "library",
+    "description": "Omnilab STRING: a protein by its STRING id (9606.ENSP00000269305), UniProt accession, Ensembl protein or name - its preferred name, protein name, annotation, species and Ensembl protein - its interaction partners as related things with their combined scores, the network among proteins with each evidence channel's score, and their functional enrichment (GO, KEGG, Reactome, Pfam, InterPro, diseases), through STRING's API, no key needed.",
+    "keywords": [
+        "science",
+        "biology",
+        "string",
+        "protein-protein interactions",
+        "networks",
+        "enrichment",
+        "uniprot",
+        "omnilab"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marco Meyer",
+            "email": "marco.meyer@glitchr.io"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "glitchr/omnilab": "^1.0@dev",
+        "symfony/http-client": "^6.4|^7.0|^8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Omnilab\\StringDb\\": ""
+        },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Omnilab\\StringDb\\Tests\\": "Tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
