@@ -1,6 +1,6 @@
 # omnilab/string
 
-STRING for [omniscient/omnilab](https://github.com/glitchr-studio/omnilab): a protein by its STRING id
+STRING for [omnisense/omnilab](https://github.com/glitchr-omnisense/omnilab): a protein by its STRING id
 (`9606.ENSP00000269305`, TP53), a UniProt accession, an Ensembl protein or a name in a species, with
 its preferred name, protein name, annotation and species, its Ensembl protein as a cross-reference,
 and its interaction partners as related things - each partner's combined score a property; the
