@@ -1,5 +1,11 @@
 # omnilab/string
 
+STRING's API (`https://string-db.org/api/json/`) for [omnisense/omnilab](https://github.com/glitchr-omnisense/omnilab):
+a protein by its STRING id, UniProt accession, Ensembl protein or name - its preferred name,
+annotation, species, Ensembl protein - with its interaction partners and their scores as related
+things, as an entity; outside the contract, the network among proteins with each evidence
+channel's score, and their functional enrichment. No key.
+
 ## Installation
 
 ```sh
@@ -19,6 +25,52 @@ $string = (new StringSourceFactory($httpClient))->create([
 ```
 
 The namespace is `Omnilab\StringDb`: `string` is a type in PHP, not a name for a class.
+
+## Credentials
+
+None: STRING's API takes no key. It asks for the caller's identity (`caller_identity`, sent with
+every call) and for one call a second at most.
+
+## Options
+
+The factory's options, with the defaults it applies (`StringSourceFactory`):
+
+| Option | Type | Default | Required | Effect |
+|---|---|---|---|---|
+| `caller_identity` | `string` | `omnilab` | no | sent with every call as `caller_identity`, as STRING asks; empty: `omnilab` |
+| `species` | `?string` | `9606` | no | the NCBI taxon a name or an accession is looked up in (`9606`); a STRING id says its own; null or empty: none sent |
+| `partners` | `int` | `10` | no | how many interaction partners `entity()` asks for, the best first; 0: none, one call |
+| `required_score` | `int` | `400` | no | the lowest combined score of an interaction, in thousandths (400 medium, 700 high, 900 highest) |
+| `mailto` | `?string` | null | no | a contact address, sent in the User-Agent |
+| `user_agent` | `?string` | null | no | the whole User-Agent, in place of the one made from `mailto` |
+| `throttle` | `float` | `1` | no | seconds left between two calls: STRING asks for one a second |
+| `base_uri` | `string` | `https://string-db.org/api/json/` | no | the API the source calls |
+
+## Capabilities
+
+`capabilities()` answers `entity`, `cross_references`; an operation it does not answer throws `NotSupportedException` before any call.
+
+| Capability | Supported | |
+|---|---|---|
+| `entity` | yes | a STRING id (`9606.ENSP00000269305`, `string:`, its page), a UniProt accession, an Ensembl protein or a name, mapped by STRING; another base refused before any call; two calls (one with `partners` 0) |
+| `search` | no | `get_string_ids` maps a name to its best protein, it does not rank texts |
+| `series` | no |  |
+| `products` | no |  |
+| `occurrences` | no |  |
+| `datasets` | no |  |
+| `jobs` | no |  |
+| `open` | no |  |
+| `structure` | no | the image is STRING's network picture, not a structure |
+| `cross_references` | yes | its Ensembl protein, and the UniProt accession it was asked by; its partners are `related('interactor')` |
+| `forecast` | no |  |
+| `historical` | no |  |
+| `area` | no |  |
+| `station` | no |  |
+| `cloud_cover` | no |  |
+
+Outside the contract, on `Omnilab\StringDb\StringSource` ([below](#outside-the-contract)):
+`partners(Identifier|string $protein, int $limit = 10): list<Interaction>`, `network(array
+$proteins): list<Interaction>` and `enrichment(array $proteins): list<Enrichment>`.
 
 ## The scheme
 
@@ -114,6 +166,60 @@ species, the values-and-ranks enrichment, PPI enrichment p-values (`ppi_enrichme
 functional annotation of one protein (`functional_annotation`), and the images other than a
 protein's network.
 
+## Example
+
+```php
+<?php
+
+require __DIR__.'/vendor/autoload.php';
+
+use Omnilab\StringDb\StringSourceFactory;
+use Symfony\Component\HttpClient\HttpClient;
+
+$string = (new StringSourceFactory(HttpClient::create()))->create(['mailto' => 'you@example.org', 'partners' => 3]);
+
+$hbb = $string->entity('uniprot:P68871');
+echo $hbb->label, ' (', $hbb->id, '): ', $hbb->value('protein_name'), ', ', $hbb->value('species'), "\n";
+foreach ($hbb->properties('interaction') as $interaction) {
+    echo '  ', $interaction->label, ' ', $interaction, "\n";
+}
+
+$network = $string->network(['HBB', 'HBA1', 'HBA2']);
+printf("network of HBB, HBA1, HBA2: %d interactions\n", count($network));
+
+$terms = $string->enrichment(['HBB', 'HBA1', 'HBA2', 'HBD', 'HBG1', 'HBG2']);
+printf("enrichment: %d terms; the first: %s %s (FDR %s)\n", count($terms), $terms[0]->category, $terms[0]->description, $terms[0]->fdr);
+```
+
+```
+HBB (string:9606.ENSP00000494175): Hemoglobin subunit beta, Homo sapiens
+  Interaction with HBA2 0.999
+  Interaction with HBZ 0.999
+  Interaction with HBD 0.999
+network of HBB, HBA1, HBA2: 3 interactions
+enrichment: 182 terms; the first: COMPARTMENTS Hemoglobin complex (FDR 4.91E-15)
+```
+
+(as answered on 2026-10-27: four calls, a second apart)
+
+```yaml
+# config/packages/omnilab.yaml
+omnilab:
+    sources:
+        string: { factory: string, options: { mailto: '%env(OMNILAB_MAILTO)%', caller_identity: my-app, species: '9606' } }
+```
+
+`partners()`, `network()` and `enrichment()` are methods of `StringSource`, not of the interface
+the bundle injects: check the instance before calling them.
+
+## Errors
+
+Every call goes through `HttpSource`: a 404 or a 410 (and a 204) is null - an empty page for a list -; a 429 is a `RateLimitedException` (`retryAfter` from `Retry-After`); a 5xx, a time-out or a host that does not answer an `UnavailableException`; any other 4xx a `ProviderException` with its `status` and what the service said; an answer that is not JSON a `ProviderException`, a web page answered for JSON an `UnavailableException`.
+
+STRING's own: a name it maps to nothing is an empty list, null. Before any call: an identifier of
+a base STRING does not read (ChEBI, NCBI Gene, Wikidata, Reactome...), in `entity()`,
+`partners()`, `network()` or `enrichment()` (`NotSupportedException`).
+
 ## Verified, and not
 
 Against the real service on 2026-10-15 (STRING 12.5): hemoglobin beta by its UniProt accession,
@@ -123,5 +229,19 @@ medium confidence; the network among HBB, HBA1 and HBA2 (three interactions); th
 globin genes (185 terms, Pfam's Globin PF00042, Reactome's heme assimilation). The fixtures in
 `Tests/Fixtures/` are its answers. Each call took 0.5 to 2 s.
 
+Again on 2026-10-27: hemoglobin beta by its UniProt accession and its three best partners, the
+network among HBB, HBA1 and HBA2, the enrichment of six globin genes (182 terms; the example above).
+
 Not verified: STRING's behaviour past one call a second (none was made); a POST for long lists
 (GET is used: a few hundred names fit); species other than human.
+
+## Responsibility
+
+This package is an independent, unofficial client: it is not affiliated with, endorsed by or
+sponsored by the STRING consortium. STRING's data are under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), cited as it asks (Szklarczyk D. et al.,
+Nucleic Acids Res. 2025, 10.1093/nar/gkae1113), within one call a second and with the caller's
+identity, as the README's [Terms of use](https://github.com/glitchr-omnisense/omnilab-string#terms-of-use)
+says. Whoever runs the package is responsible for complying with them and for any use made of what
+it returns: see the README's
+[Responsibility](https://github.com/glitchr-omnisense/omnilab-string#responsibility) section.
