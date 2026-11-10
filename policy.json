@@ -1,0 +1,49 @@
+{
+    "$schema": "https://github.com/glitchr-omnisense/contracts/blob/1.x/resources/usage-policy.schema.json",
+    "provider": "string",
+    "rateLimits": [
+        {
+            "max": 1,
+            "window": "second",
+            "every": 1,
+            "scope": "application",
+            "operations": [],
+            "note": "\"Please be considerate and wait one second between each call\"; for bulk use, the download files."
+        }
+    ],
+    "concurrency": 1,
+    "rights": {
+        "commercial": "allowed",
+        "openSourceRequired": null,
+        "caching": {
+            "permission": "allowed",
+            "maxTtl": null
+        },
+        "storage": "allowed",
+        "redistribution": "allowed",
+        "attribution": {
+            "required": true,
+            "text": "STRING (version), with any changes or additions indicated; cite Szklarczyk D. et al., Nucleic Acids Res. 2025, doi:10.1093/nar/gkae1113",
+            "url": "https://string-db.org/cgi/access",
+            "where": [
+                "source"
+            ]
+        },
+        "licence": "CC-BY-4.0"
+    },
+    "requirements": {
+        "key": false,
+        "userAgent": {
+            "required": true,
+            "pattern": null
+        }
+    },
+    "provenance": {
+        "terms": "https://string-db.org/cgi/access",
+        "policy": "https://string-db.org/help/api/",
+        "verifiedAt": "2026-11-10",
+        "declaredBy": "maintainer",
+        "contact": "https://string-db.org/cgi/support",
+        "notes": "Read 2026-11-10: the access page (CC BY 4.0 for website, API and download outputs, commercial use allowed, credit STRING and indicate changes; AI use allowed with STRING and its version named; APIs for limited or occasional access, no HTML scraping) and the API help (one second between calls, avoid running scripts in parallel: concurrency 1, identify with the caller_identity parameter: userAgent.required stands for it; pin a version host such as https://version-12-5.string-db.org for stable answers). No RateLimit header on a live call."
+    }
+}

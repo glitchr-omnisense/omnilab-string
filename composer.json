@@ -40,6 +40,11 @@
             "Omnilab\\StringDb\\Tests\\": "Tests/"
         }
     },
+    "extra": {
+        "omnisense": {
+            "policy": "policy.json"
+        }
+    },
     "config": {
         "sort-packages": true
     }

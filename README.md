@@ -45,6 +45,17 @@ STRING database in 2025: protein networks with directionality of regulation", Nu
 second at most and for the caller's identity: the source waits 1 s between two calls and sends
 `caller_identity`.
 
+## Usage policy
+
+Declared as data in [`policy.json`](policy.json) (read at https://string-db.org/help/api/ on 2026-11-10), and honoured on every request by the
+core: a limit reached waits when its window ends within `max_wait` seconds, else the request is not
+sent ([Usage policies](https://github.com/glitchr-omnisense/omnilab/blob/1.x/docs/policies.md)).
+
+- Limits: 1 a second; at most 1 in flight.
+- Licence: CC-BY-4.0; commercial use: allowed.
+- Credit: required: STRING (version), with any changes or additions indicated; cite Szklarczyk D. et al., Nucleic Acids Res. 2025, doi:10.1093/nar/gkae1113 (https://string-db.org/cgi/access).
+- Needs: a User-Agent.
+
 ## Responsibility
 
 This package is an independent, unofficial client: it is not affiliated with, endorsed by or
