@@ -36,6 +36,34 @@ omnilab:
 A protein is named in the core's `string` scheme. The `Collector` reaches STRING from any source
 that gives a UniProt accession or an Ensembl protein (`$collector->collect('uniprot', 'P68871')`).
 
+## Install and a first call
+
+```sh
+composer require omnilab/string
+```
+
+A real call, with no account and no key: human haemoglobin beta in STRING. `mailto` is your address,
+sent in the User-Agent so that the service can reach you before it blocks a caller; the source keeps
+to the limits its [`policy.json`](policy.json) declares.
+
+```php
+<?php
+
+require __DIR__.'/vendor/autoload.php';
+
+use Omnilab\StringDb\StringSourceFactory;
+
+$string = (new StringSourceFactory())->create(['mailto' => 'you@example.org']);   // your address, in the User-Agent
+$protein = $string->entity('9606.ENSP00000494175');
+echo $protein->label, ': ', $protein->value('protein_name'), "\n";
+```
+
+Its output on 2026-11-13:
+
+```
+HBB: Hemoglobin subunit beta
+```
+
 ## Terms of use
 
 STRING's data are under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
